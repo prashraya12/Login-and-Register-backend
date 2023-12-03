@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 //connect to mongoose
 mongoose
   .connect(
-    "mongodb+srv://Prashraya:oversweet-essential@cluster0.cblu1tu.mongodb.net/?retryWrites=true&w=majority"
+    "mongodb+srv://Prashraya:oversweet-essential@cluster0.cblu1tu.mongodb.net/registerdbretryWrites=true&w=majority"
   )
   .then(() => console.log("Db connected"))
   .catch(err => console.log(err.message));
@@ -47,7 +47,7 @@ app.post("/login", async (req, res) => {
   let username = req.body.username;
   let userPassword = req.body.password;
   //find the user in mongodb
-
+  try{
   // const userFound = await User.findOne({username: username})
   const userDocument = await User.findOne({password:userPassword, username})
 
@@ -57,13 +57,19 @@ app.post("/login", async (req, res) => {
 
     })
   }
-  console.log("sucess")
+   console.log(" Login sucess");
   //API 
-   res.json({
-     msg:"Login Success",
-     password,
+    // res.json({
+    //   msg:"Login Success",
+    //   userDocument,
 
-   });
+    // });
+  res.redirect(`/profile/${userDocument.id}`);
+}catch(error){
+  console.log(error);
+
+}
+  
 });
 
 //get Register form
@@ -73,17 +79,30 @@ app.get("/register", (req, res) => {
 
 //Register user
 app.post("/register",  (req, res) => {
-    User.create({
+   try{ User.create({
       fullName:req.body.fullName,
       username:req.body.username,
       password: req.body.password,
-    }).then((user) => console.log(user)).catch((err) =>{console.log(err)});
+    }).then(user =>{res.redirect("/login")}).catch((err) =>{console.log(err)});
+  }catch(error){
+    console.log(error)
+
+  }
 });
 
 
 //profile
-app.get("/profile/:id", (req, res) => {
-  res.render("profile");
+app.get("/profile/:id", async (req, res) => {
+ //find the user by id
+ try{
+  const user = await User.findById(req.params.id);
+  res.render("profile", { user });
+ 
+
+}catch(error){
+
+  console.log(error);
+ }
 });
 //listen
 app.listen(port, () => {
